@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тригонометрия тупого угла - Игра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .question-area {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .angle-info {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .answer-btn {
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 2px solid #764ba2;
+            background: white;
+            color: #764ba2;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            background: #764ba2;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .answer-btn.correct {
+            background: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+        }
+
+        .answer-btn.wrong {
+            background: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 15px;
+        }
+
+        .feedback.correct {
+            color: #28a745;
+        }
+
+        .feedback.wrong {
+            color: #dc3545;
+        }
+
+        .btn-start {
+            display: block;
+            margin: 0 auto;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(118, 75, 162, 0.5);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .formula-hint {
+            background: #fff3cd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .formula-hint strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .answers {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            canvas {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>📐 Тригонометрия тупого угла</h1>
+        
+        <div class="score-board">
+            <div class="score-item">
+                <div class="score-label">Очки</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Вопрос</div>
+                <div class="score-value" id="questionNum">0/10</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Правильно</div>
+                <div class="score-value" id="correctCount">0</div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="unitCircle" width="300" height="300"></canvas>
+        </div>
+
+        <div id="startScreen">
+            <div class="formula-hint">
+                <strong>📚 Вспомним формулы приведения:</strong>
+                sin(180° - α) = sin α<br>
+                cos(180° - α) = -cos α<br>
+                tg(180° - α) = -tg α<br>
+                ctg(180° - α) = -ctg α
+            </div>
+            <button class="btn-start" onclick="startGame()">Начать игру</button>
+        </div>
+
+        <div id="gameScreen" class="hidden">
+            <div class="question-area">
+                <div class="question" id="questionText">Вопрос</div>
+                <div class="angle-info" id="angleInfo"></div>
+                <div class="answers" id="answersContainer"></div>
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div id="endScreen" class="hidden">
+            <div class="question-area">
+                <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+                    🎉 Игра завершена!
+                </h2>
+                <p style="text-align: center; font-size: 20px; margin-bottom: 20px;">
+                    Ваш результат: <strong id="finalScore">0</strong> из 100
+                </p>
+                <p style="text-align: center; font-size: 18px; margin-bottom: 20px;" id="finalMessage"></p>
+                <button class="btn-start" onclick="startGame()">Играть снова</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Данные для игры
+        const questions = [
+            {
+                angle: 120,
+                baseAngle: 60,
+                type: 'sin',
+                question: 'Чему равен sin 120°?',
+                correctAnswer: '√3/2',
+                options: ['√3/2', '-√3/2', '1/2', '-1/2'],
+                explanation: 'sin 120° = sin(180° - 60°) = sin 60° = √3/2'
+            },
+            {
+                angle: 135,
+                baseAngle: 45,
+                type: 'cos',
+                question: 'Чему равен cos 135°?',
+                correctAnswer: '-√2/2',
+                options: ['√2/2', '-√2/2', '1/2', '-1/2'],
+                explanation: 'cos 135° = cos(180° - 45°) = -cos 45° = -√2/2'
+            },
+            {
+                angle: 150,
+                baseAngle: 30,
+                type: 'tg',
+                question: 'Чему равен tg 150°?',
+                correctAnswer: '-√3/3',
+                options: ['√3/3', '-√3/3', '√3', '-√3'],
+                explanation: 'tg 150° = tg(180° - 30°) = -tg 30° = -√3/3'
+            },
+            {
+                angle: 120,
+                baseAngle: 60,
+                type: 'ctg',
+                question: 'Чему равен ctg 120°?',
+                correctAnswer: '-√3/3',
+                options: ['√3/3', '-√3/3', '√3', '-√3'],
+                explanation: 'ctg 120° = ctg(180° - 60°) = -ctg 60° = -√3/3'
+            },
+            {
+                angle: 135,
+                baseAngle: 45,
+                type: 'sin',
+                question: 'Чему равен sin 135°?',
+                correctAnswer: '√2/2',
+                options: ['√2/2', '-√2/2', '√3/2', '-√3/2'],
+                explanation: 'sin 135° = sin(180° - 45°) = sin 45° = √2/2'
+            },
+            {
+                angle: 150,
+                baseAngle: 30,
+                type: 'cos',
+                question: 'Чему равен cos 150°?',
+                correctAnswer: '-√3/2',
+                options: ['√3/2', '-√3/2', '1/2', '-1/2'],
+                explanation: 'cos 150° = cos(180° - 30°) = -cos 30° = -√3/2'
+            },
+            {
+                angle: 120,
+                baseAngle: 60,
+                type: 'tg',
+                question: 'Чему равен tg 120°?',
+                correctAnswer: '-√3',
+                options: ['√3', '-√3', '√3/3', '-√3/3'],
+                explanation: 'tg 120° = tg(180° - 60°) = -tg 60° = -√3'
+            },
+            {
+                angle: 135,
+                baseAngle: 45,
+                type: 'ctg',
+                question: 'Чему равен ctg 135°?',
+                correctAnswer: '-1',
+                options: ['1', '-1', '√2', '-√2'],
+                explanation: 'ctg 135° = ctg(180° - 45°) = -ctg 45° = -1'
+            },
+            {
+                angle: 150,
+                baseAngle: 30,
+                type: 'sin',
+                question: 'Чему равен sin 150°?',
+                correctAnswer: '1/2',
+                options: ['1/2', '-1/2', '√3/2', '-√3/2'],
+                explanation: 'sin 150° = sin(180° - 30°) = sin 30° = 1/2'
+            },
+            {
+                angle: 120,
+                baseAngle: 60,
+                type: 'cos',
+                question: 'Чему равен cos 120°?',
+                correctAnswer: '-1/2',
+                options: ['1/2', '-1/2', '√3/2', '-√3/2'],
+                explanation: 'cos 120° = cos(180° - 60°) = -cos 60° = -1/2'
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let correctCount = 0;
+        let canAnswer = true;
+        let shuffledQuestions = [];
+
+        // Получение элемента canvas
+        const canvas = document.getElementById('unitCircle');
+        const ctx = canvas.getContext('2d');
+
+        // Функция перемешивания массива
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Функция рисования единичной окружности
+        function drawUnitCircle(angle, type) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 100;
+
+            // Очистка canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Рисование осей
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            
+            // Ось X
+            ctx.beginPath();
+            ctx.moveTo(20, centerY);
+            ctx.lineTo(canvas.width - 20, centerY);
+            ctx.stroke();
+
+            // Ось Y
+            ctx.beginPath();
+            ctx.moveTo(centerX, 20);
+            ctx.lineTo(centerX, canvas.height - 20);
+            ctx.stroke();
+
+            // Подписи осей
+            ctx.fillStyle = '#999';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', canvas.width - 30, centerY - 10);
+            ctx.fillText('y', centerX + 10, 30);
+
+            // Рисование единичной окружности
+            ctx.beginPath();
+            ctx.strokeStyle = '#764ba2';
+            ctx.lineWidth = 2;
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Преобразование угла в радианы
+            const radians = (angle * Math.PI) / 180;
+
+            // Координаты точки на окружности
+            const pointX = centerX + radius * Math.cos(radians);
+            const pointY = centerY - radius * Math.sin(radians);
+
+            // Рисование радиуса (угла)
+            ctx.beginPath();
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(pointX, pointY);
+            ctx.stroke();
+
+            // Рисование дуги угла
+            ctx.beginPath();
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 2;
+            ctx.arc(centerX, centerY, 40, 0, -radians, true);
+            ctx.stroke();
+
+            // Подпись угла
+            const labelRadius = 60;
+            const labelX = centerX + labelRadius * Math.cos(radians / 2);
+            const labelY = centerY - labelRadius * Math.sin(radians / 2);
+            
+            ctx.fillStyle = '#3498db';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(angle + '°', labelX - 15, labelY + 5);
+
+            // Рисование точки на окружности
+            ctx.beginPath();
+            ctx.fillStyle = '#e74c3c';
+            ctx.arc(pointX, pointY, 6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Пунктирные линии к осям
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#95a5a6';
+            ctx.lineWidth = 1;
+
+            // Линия к оси X
+            ctx.beginPath();
+            ctx.moveTo(pointX, pointY);
+            ctx.lineTo(pointX, centerY);
+            ctx.stroke();
+
+            // Линия к оси Y
+            ctx.beginPath();
+            ctx.moveTo(pointX, pointY);
+            ctx.lineTo(centerX, pointY);
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+
+            // Подписи координат
+            ctx.fillStyle = '#555';
+            ctx.font = '12px Arial';
+            
+            // Значение cos (x-координата)
+            const cosValue = Math.cos(radians);
+            ctx.fillText('cos = ' + cosValue.toFixed(2), pointX + 10, centerY + (pointY < centerY ? -10 : 20));
+            
+            // Значение sin (y-координата)
+            const sinValue = Math.sin(radians);
+            ctx.fillText('sin = ' + sinValue.toFixed(2), centerX + 10, pointY - 10);
+
+            // Выделение типа функции
+            ctx.fillStyle = '#764ba2';
+            ctx.font = 'bold 14px Arial';
+            const typeLabels = {
+                'sin': 'Синус - это ордината (y)',
+                'cos': 'Косинус - это абсцисса (x)',
+                'tg': 'Тангенс = sin/cos',
+                'ctg': 'Котангенс = cos/sin'
+            };
+            ctx.fillText(typeLabels[type], 20, 25);
+        }
+
+        // Начало игры
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            currentQuestion = 0;
+            score = 0;
+            correctCount = 0;
+            canAnswer = true;
+            
+            shuffledQuestions = shuffleArray(questions).slice(0, 10);
+            
+            updateScore();
+            showQuestion();
+        }
+
+        // Обновление счета
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('questionNum').textContent = 
+                Math.min(currentQuestion + 1, 10) + '/10';
+            document.getElementById('correctCount').textContent = correctCount;
+        }
+
+        // Показ вопроса
+        function showQuestion() {
+            if (currentQuestion >= shuffledQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const q = shuffledQuestions[currentQuestion];
+            canAnswer = true;
+
+            // Обновление текста вопроса
+            document.getElementById('questionText').textContent = q.question;
+            document.getElementById('angleInfo').textContent = 
+                `Угол ${q.angle}° находится во II четверти`;
+
+            // Очистка feedback
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+
+            // Рисование окружности
+            drawUnitCircle(q.angle, q.type);
+
+            // Создание кнопок ответов
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+
+            const shuffledOptions = shuffleArray(q.options);
+
+            shuffledOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = option;
+                btn.onclick = () => checkAnswer(btn, option, q);
+                answersContainer.appendChild(btn);
+            });
+
+            updateScore();
+        }
+
+        // Проверка ответа
+        function checkAnswer(btn, selectedAnswer, question) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const feedback = document.getElementById('feedback');
+            const allButtons = document.querySelectorAll('.answer-btn');
+
+            // Отключение всех кнопок
+            allButtons.forEach(b => b.disabled = true);
+
+            if (selectedAnswer === question.correctAnswer) {
+                // Правильный ответ
+                btn.classList.add('correct');
+                score += 10;
+                correctCount++;
+                
+                feedback.textContent = '✅ Правильно! ' + question.explanation;
+                feedback.className = 'feedback correct';
+            } else {
+                // Неправильный ответ
+                btn.classList.add('wrong');
+                
+                // Показать правильный ответ
+                allButtons.forEach(b => {
+                    if (b.textContent === question.correctAnswer) {
+                        b.classList.add('correct');
+                    }
+                });
+                
+                feedback.textContent = '❌ Неправильно. ' + question.explanation;
+                feedback.className = 'feedback wrong';
+            }
+
+            updateScore();
+
+            // Переход к следующему вопросу через 2.5 секунды
+            setTimeout(() => {
+                currentQuestion++;
+                showQuestion();
+            }, 2500);
+        }
+
+        // Конец игры
+        function endGame() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+
+            document.getElementById('finalScore').textContent = score;
+
+            let message = '';
+            if (score === 100) {
+                message = '🏆 Отлично! Вы отлично знаете тригонометрию тупого угла!';
+            } else if (score >= 80) {
+                message = '👍 Хороший результат! Немного практики и будет идеально!';
+            } else if (score >= 60) {
+                message = '📖 Неплохо, но стоит повторить формулы приведения.';
+            } else {
+                message = '📚 Нужно ещё поработать над этой темой. Повторите формулы!';
+            }
+            document.getElementById('finalMessage').textContent = message;
+        }
+
+        // Инициализация - нарисовать окружность при загрузке
+        window.onload = function() {
+            drawUnitCircle(120, 'sin');
+        };
+    </script>
+</body>
+</html>
